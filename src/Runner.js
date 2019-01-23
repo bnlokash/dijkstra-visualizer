@@ -1,13 +1,23 @@
-import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import { addNode, removeNode, addEdge, removeEdge, removeEdgeAll, setStart, setEnd, setDist, updateStatus } from './actions';
+import React, { Component } from "react";
+import { connect } from "react-redux";
+import {
+  addNode,
+  removeNode,
+  addEdge,
+  removeEdge,
+  removeEdgeAll,
+  setStart,
+  setEnd,
+  setDist,
+  updateStatus
+} from "./actions";
 
 class Runner extends Component {
   constructor() {
     super();
     this.state = {
       done: true
-    }
+    };
     this.runDijkstra = this.runDijkstra.bind(this);
     this.step = this.step.bind(this);
   }
@@ -16,25 +26,23 @@ class Runner extends Component {
     return (
       <div>
         <button onClick={this.runDijkstra}>Start</button>
-        <button onClick={this.step} disabled = {this.state.done}>Step</button>
+        <button onClick={this.step} disabled={this.state.done}>
+          Step
+        </button>
       </div>
-    )
+    );
   }
 
-  async runDijkstra() {
-    this.initNodes()
-  }
-
-  sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+  runDijkstra() {
+    this.initNodes();
   }
 
   initNodes() {
     this.setState({
       done: false
-    })
+    });
     let currentProps = JSON.parse(JSON.stringify(this.props));
-    let {nodes, edges, start, end} = currentProps;
+    let { nodes, edges, start, end } = currentProps;
     for (let n of nodes) {
       n.adjacent = [];
       n.prev = -1;
@@ -42,23 +50,23 @@ class Runner extends Component {
       n.value = Number.MAX_SAFE_INTEGER;
       for (let e of edges) {
         if (e.from === n.name) {
-          n.adjacent.push({to: e.to, dist: e.dist});
+          n.adjacent.push({ to: e.to, dist: e.dist });
         } else if (e.to === n.name) {
-          n.adjacent.push({to: e.from, dist: e.dist});
+          n.adjacent.push({ to: e.from, dist: e.dist });
         }
       }
       n.start = n.name === start;
       n.end = n.name === end;
     }
-    this.props.onUpdateStatus({nodes, visiting: null});
+    this.props.onUpdateStatus({ nodes, visiting: null });
   }
 
   step() {
     let currentStatus = JSON.parse(JSON.stringify(this.props.status));
-    let {nodes, visiting} = currentStatus;
+    let { nodes, visiting } = currentStatus;
     let node = null;
     if (!visiting) {
-      node = nodes.find((n)=>{
+      node = nodes.find(n => {
         return n.start === true;
       });
       node.value = 0;
@@ -68,20 +76,19 @@ class Runner extends Component {
     this.updateAdjacent(node, nodes);
     node.visited = true;
     if (!this.unvisitedRemain(nodes)) {
-      this.setState({done: true});
+      this.setState({ done: true });
     }
-    this.props.onUpdateStatus({nodes, visiting: node.name});
+    this.props.onUpdateStatus({ nodes, visiting: node.name });
   }
 
   findNode(name, nodes) {
-    return nodes.find((n)=> {
+    return nodes.find(n => {
       return n.name === name;
-    })
+    });
   }
 
-
   updateAdjacent(node, nodes) {
-    console.log('update adjacent', node.name);
+    console.log("update adjacent", node.name);
     for (let adjNode of node.adjacent) {
       let adj = this.findNode(adjNode.to, nodes);
       let updatedValue = adjNode.dist + node.value;
@@ -94,24 +101,23 @@ class Runner extends Component {
 
   firstStep() {
     let currentStatus = JSON.parse(JSON.stringify(this.props.status));
-    let {nodes, visiting} = currentStatus;
+    let { nodes, visiting } = currentStatus;
     if (!visiting) {
-      
     }
-    let node = nodes.find((n)=>{
+    let node = nodes.find(n => {
       return n.start === true;
     });
     node.value = 0;
     this.updateAdjacent(node, nodes);
     node.visited = true;
-    this.props.onUpdateStatus({nodes, visiting: node.name});
+    this.props.onUpdateStatus({ nodes, visiting: node.name });
   }
 
   findSmallestUnvisited(nodes) {
     let smallestValue = Number.MAX_SAFE_INTEGER;
     let smallestNode = null;
     for (let n of nodes) {
-      if (!n.visited && (n.value < smallestValue)) {
+      if (!n.visited && n.value < smallestValue) {
         smallestValue = n.value;
         smallestNode = n;
       }
@@ -131,8 +137,8 @@ const mapStateToProps = state => {
     start: state.start,
     end: state.end,
     status: state.status
-  }
-}
+  };
+};
 
 const mapDispatchToProps = dispatch => {
   return {
@@ -145,8 +151,8 @@ const mapDispatchToProps = dispatch => {
     onSetEnd: name => dispatch(setEnd(name)),
     onSetDist: (from, to, dist) => dispatch(setDist(from, to, dist)),
     onUpdateStatus: status => dispatch(updateStatus(status))
-  }
-}
+  };
+};
 
 const ConnectedRunner = connect(
   mapStateToProps,
